@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { label: 'Home', section: 'home' },
   { label: 'Explore Seniors', section: 'seniors' },
   { label: 'Interview Experiences', section: 'interviews' },
-  { label: 'Community', section: 'community' },
   { label: 'About Us', section: 'about' },
 ]
 
@@ -122,7 +121,7 @@ export default function Navbar() {
                 to="/register"
                 className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/30 transition hover:bg-indigo-700"
               >
-                Get Started
+                Register
               </Link>
             </>
           )}
@@ -177,7 +176,7 @@ export default function Navbar() {
                   to="/register"
                   className="rounded-lg bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white"
                 >
-                  Get Started
+                  Register
                 </Link>
               </>
             )}
