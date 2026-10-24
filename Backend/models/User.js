@@ -132,4 +132,4 @@ studentSchema.index({
   year: 1,
 });
 
-export default mongoose.model("Student", studentSchema);
+export default mongoose.model("User", studentSchema);
