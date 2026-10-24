@@ -8,18 +8,7 @@ const FOOTER_GROUPS = [
     title: 'Platform',
     links: [
       { label: 'Explore Seniors', section: 'seniors' },
-      { label: 'Find a Mentor', section: 'mentor' },
       { label: 'Interview Experiences', section: 'interviews' },
-      { label: 'Student Community', section: 'community' },
-    ],
-  },
-  {
-    title: 'Resources',
-    links: [
-      { label: 'DSA Preparation', section: 'resources' },
-      { label: 'Web Development', section: 'resources' },
-      { label: 'Core CS Subjects', section: 'resources' },
-      { label: 'Resume Building', section: 'resources' },
     ],
   },
   {
@@ -82,7 +71,7 @@ export default function Footer() {
   return (
     <footer className="bg-navy-950 text-slate-300">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+        <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <Logo className="[&_span]:text-white [&_span_span]:text-indigo-light" />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">

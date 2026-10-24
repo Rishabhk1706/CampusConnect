@@ -7,9 +7,7 @@ import SeniorsSection from '../components/home/SeniorsSection'
 import HowItWorksSection from '../components/home/HowItWorksSection'
 import CategoriesSection from '../components/home/CategoriesSection'
 import InterviewsSection from '../components/home/InterviewsSection'
-import CommunitySection from '../components/home/CommunitySection'
 import ChatPreviewSection from '../components/home/ChatPreviewSection'
-import ResourcesSection from '../components/home/ResourcesSection'
 import SuccessStoriesSection from '../components/home/SuccessStoriesSection'
 import WhyChooseSection from '../components/home/WhyChooseSection'
 import InnovationSection from '../components/home/InnovationSection'
@@ -35,9 +33,7 @@ export default function HomePage() {
       <HowItWorksSection />
       <CategoriesSection />
       <InterviewsSection />
-      <CommunitySection />
       <ChatPreviewSection />
-      <ResourcesSection />
       <SuccessStoriesSection />
       <WhyChooseSection />
       <InnovationSection />

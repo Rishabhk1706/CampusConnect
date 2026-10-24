@@ -67,7 +67,7 @@ export default function HeroSection() {
           <div className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-2xl shadow-indigo-500/10 backdrop-blur sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Recommended mentors</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Select mentors</p>
                 <p className="font-display text-lg font-bold text-navy-900">Based on your interests</p>
               </div>
               <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Live preview</span>
@@ -117,11 +117,6 @@ export default function HeroSection() {
             </div>
           </div>
 
-          <div className="absolute -bottom-4 -left-2 max-w-[240px] rounded-2xl border border-indigo-100 bg-white p-4 shadow-xl sm:-left-8">
-            <p className="text-sm font-semibold leading-snug text-navy-900">
-              Your next opportunity starts with the right conversation.
-            </p>
-          </div>
         </div>
       </div>
     </section>

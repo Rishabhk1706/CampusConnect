@@ -9,10 +9,8 @@ import { scrollToSection } from '../../utils/navigation'
 const NAV_LINKS = [
   { label: 'Home', section: 'home' },
   { label: 'Explore Seniors', section: 'seniors' },
-  { label: 'Find a Mentor', section: 'mentor' },
   { label: 'Interview Experiences', section: 'interviews' },
   { label: 'Community', section: 'community' },
-  { label: 'Resources', section: 'resources' },
   { label: 'About Us', section: 'about' },
 ]
 

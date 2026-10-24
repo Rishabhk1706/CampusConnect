@@ -1,48 +1,18 @@
-import { useMemo, useState } from 'react'
-import { Check, Search, X } from 'lucide-react'
+import { useState } from 'react'
+import { Check, X } from 'lucide-react'
 import SectionHeading from '../ui/SectionHeading'
 import MentorCard from './MentorCard'
 import { MENTORS } from '../../data/demoData'
 import { useAuth } from '../../context/AuthContext'
 import { scrollToSection } from '../../utils/navigation'
 
-const DOMAINS = ['All', ...new Set(MENTORS.map((m) => m.domain))]
-const SKILLS = ['All', ...new Set(MENTORS.flatMap((m) => m.skills))]
-const COMPANIES = ['All', ...new Set(MENTORS.map((m) => m.company))]
-
 export default function SeniorsSection() {
   const { isAuthenticated } = useAuth()
-  const [query, setQuery] = useState('')
-  const [domain, setDomain] = useState('All')
-  const [skill, setSkill] = useState('All')
-  const [company, setCompany] = useState('All')
-  const [internOnly, setInternOnly] = useState(false)
-  const [mentorship, setMentorship] = useState('All')
   const [notice, setNotice] = useState('')
   const [selectedMentor, setSelectedMentor] = useState(null)
   const [requested, setRequested] = useState(() => {
     try { return JSON.parse(localStorage.getItem('peerconnect-requests')) || [] } catch { return [] }
   })
-
-  const mentorshipOptions = useMemo(
-    () => ['All', ...new Set(MENTORS.flatMap((m) => m.mentorship))],
-    [],
-  )
-
-  const filtered = useMemo(() => {
-    return MENTORS.filter((m) => {
-      const q = query.trim().toLowerCase()
-      const matchesQuery =
-        !q ||
-        [m.name, m.role, m.company, m.domain, ...m.skills, ...m.mentorship].join(' ').toLowerCase().includes(q)
-      const matchesDomain = domain === 'All' || m.domain === domain
-      const matchesSkill = skill === 'All' || m.skills.includes(skill)
-      const matchesCompany = company === 'All' || m.company === company
-      const matchesIntern = !internOnly || m.hasInternship
-      const matchesMentorship = mentorship === 'All' || m.mentorship.includes(mentorship)
-      return matchesQuery && matchesDomain && matchesSkill && matchesCompany && matchesIntern && matchesMentorship
-    })
-  }, [query, domain, skill, company, internOnly, mentorship])
 
   const handleConnect = (mentor) => {
     if (!isAuthenticated) {
@@ -72,53 +42,17 @@ export default function SeniorsSection() {
           subtitle="Discover experienced students who are ready to share their knowledge, explain their preparation strategies, and help you make informed career decisions."
         />
 
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <label className="relative block">
-            <span className="sr-only">Search seniors</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search seniors by skills, company, role, or domain..."
-              className="w-full rounded-xl border border-slate-200 py-3 pl-12 pr-4 text-sm outline-none ring-indigo-500/0 transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-            />
-          </label>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <FilterSelect label="Career Domain" value={domain} onChange={setDomain} options={DOMAINS} />
-            <FilterSelect label="Technical Skills" value={skill} onChange={setSkill} options={SKILLS} />
-            <FilterSelect label="Company" value={company} onChange={setCompany} options={COMPANIES} />
-            <FilterSelect label="Mentorship Interests" value={mentorship} onChange={setMentorship} options={mentorshipOptions} />
-            <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={internOnly}
-                onChange={(e) => setInternOnly(e.target.checked)}
-                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              Internship experience
-            </label>
-          </div>
-        </div>
-
         {notice && (
           <p role="status" className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
             {notice}
           </p>
         )}
 
-        {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-            <p className="font-medium text-slate-800">No seniors match your filters</p>
-            <p className="mt-2 text-sm text-slate-500">Try adjusting search terms or clearing filters.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((mentor) => (
-              <MentorCard key={mentor.id} mentor={mentor} onViewProfile={handleView} onConnect={handleConnect} requested={requested.includes(mentor.id)} />
-            ))}
-          </div>
-        )}
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {MENTORS.map((mentor) => (
+            <MentorCard key={mentor.id} mentor={mentor} onViewProfile={handleView} onConnect={handleConnect} requested={requested.includes(mentor.id)} />
+          ))}
+        </div>
 
         <div className="mt-10 text-center">
           <button
@@ -146,24 +80,5 @@ export default function SeniorsSection() {
         </section>
       </div>}
     </section>
-  )
-}
-
-function FilterSelect({ label, value, onChange, options }) {
-  return (
-    <label className="block text-xs font-semibold text-slate-500">
-      {label}
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </label>
   )
 }
