@@ -6,6 +6,8 @@ import cors from 'cors';
 import courseRoutes from "./routes/courseRoutes.js";
 import collegeRoutes from "./routes/collegeRoutes.js";
 import branchRoutes from "./routes/branchRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ mongoose
     app.use("/api/courses", courseRoutes);
     app.use("/api/colleges", collegeRoutes);
     app.use("/api/branches", branchRoutes);
+    app.use("/api/auth", authRoutes);
+    app.use("/api/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("🎉 Welcome to the Campus Connect!");
