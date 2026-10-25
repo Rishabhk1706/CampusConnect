@@ -60,56 +60,57 @@ const VALUES = [
 ]
 
 const TEAM = [
-    {
-        name: 'Harsh Chahar',
-        role: 'Co-Founder · Full-Stack Developer',
-        initials: 'HC',
-        bio: 'Leads product vision and full-stack development. Architects the platform end-to-end and turns ideas into features students love.',
-        skills: ['React', 'Node.js', 'MongoDB', 'System Design'],
-        gradient: 'from-indigo-500 via-indigo-600 to-purple-600',
-        ring: 'ring-indigo-200',
-        tag: 'bg-indigo-50 text-indigo-700 border-indigo-100',
-    },
-    {
+    
+   {
         name: 'Basant Bhargav',
-        role: 'Co-Founder · Backend Engineer',
+        role: 'Co-Founder · Frontend Developer',
         initials: 'BB',
-        bio: 'Designs scalable backend systems and database architecture. Ensures the platform handles thousands of users with rock-solid reliability.',
-        skills: ['Express', 'MongoDB', 'REST APIs', 'Security'],
+        bio: 'Crafts pixel-perfect interfaces and seamless experiences. Turns wireframes into beautiful, responsive, and performant UIs.',
+        skills: ['React', 'JavaScript', 'Tailwind CSS', 'UI/UX'],
         gradient: 'from-violet-500 via-purple-600 to-indigo-600',
         ring: 'ring-violet-200',
         tag: 'bg-violet-50 text-violet-700 border-violet-100',
     },
     {
-        name: 'Rudra Aggarwal',
+        name: 'Harsh Chahar',
         role: 'Co-Founder · Frontend Developer',
+        initials: 'HC',
+        bio: 'Leads product vision and frontend development. Architects the client-side end-to-end and turns ideas into engaging features students love.',
+        skills: ['React', 'Next.js', 'TypeScript', 'Frontend Architecture'],
+        gradient: 'from-indigo-500 via-indigo-600 to-purple-600',
+        ring: 'ring-indigo-200',
+        tag: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    },
+    {
+        name: 'Rudra Agrawal',
+        role: 'Co-Founder · Backend Engineer',
         initials: 'RA',
-        bio: 'Crafts pixel-perfect interfaces and seamless experiences. Turns wireframes into beautiful, responsive, and performant UIs.',
-        skills: ['React', 'Tailwind CSS', 'Vite', 'UI/UX'],
+        bio: 'Designs scalable backend systems and database architecture. Ensures the platform handles thousands of users with rock-solid reliability.',
+        skills: ['Node.js', 'Express', 'MongoDB', 'REST APIs'],
         gradient: 'from-sky-500 via-blue-600 to-indigo-600',
         ring: 'ring-sky-200',
         tag: 'bg-sky-50 text-sky-700 border-sky-100',
     },
     {
         name: 'Rishabh',
-        role: 'Co-Founder · Product Developer',
+        role: 'Co-Founder · Product Developer , Backend Engineer',
         initials: 'RS',
-        bio: 'Works across the full stack to bridge product vision with engineering reality. Focused on delivering features that drive real student impact.',
-        skills: ['React', 'Node.js', 'Product Thinking', 'APIs'],
+        bio: 'Bridges product vision with backend engineering reality. Focused on building robust APIs and delivering features that drive real student impact.',
+        skills: ['Node.js', 'Product Thinking', 'System Design', 'APIs'],
         gradient: 'from-emerald-500 via-teal-600 to-cyan-600',
         ring: 'ring-emerald-200',
         tag: 'bg-emerald-50 text-emerald-700 border-emerald-100',
     },
     {
-        name: 'Rajat Aggarwal',
-        role: 'Co-Founder · DevOps Engineer',
+        name: 'Rajat Agrawal',
+        role: 'Co-Founder · Full-Stack Engineer',
         initials: 'RA',
-        bio: 'Manages deployments, pipelines, and cloud infrastructure. Keeps CampusConnect fast, secure, and available 24 / 7.',
-        skills: ['Docker', 'CI/CD', 'Cloud', 'Git'],
+        bio: 'Specializes in building intuitive and dynamic user interfaces. Combines strong design aesthetics with robust React engineering to deliver exceptional web experiences.',
+        skills: ['React', 'JavaScript', 'Tailwind CSS', 'UI/UX'],
         gradient: 'from-rose-500 via-pink-600 to-fuchsia-600',
         ring: 'ring-rose-200',
         tag: 'bg-rose-50 text-rose-700 border-rose-100',
-    },
+    }
 ]
 
 /* ─── ANIMATED COUNTER ─────────────────────────────────── */
