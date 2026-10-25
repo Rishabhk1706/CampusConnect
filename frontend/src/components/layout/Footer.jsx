@@ -14,8 +14,8 @@ const FOOTER_GROUPS = [
   {
     title: 'Company',
     links: [
-      { label: 'About Us', section: 'about' },
-      { label: 'Our Mission', section: 'about' },
+      { label: 'About Us', to: '/about' },
+      { label: 'Our Mission', to: '/about' },
       { label: 'Contact', section: 'cta' },
       { label: 'Feedback', section: 'cta' },
     ],
