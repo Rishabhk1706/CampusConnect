@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { label: 'Home', section: 'home' },
   { label: 'Explore Seniors', section: 'seniors' },
   { label: 'Interview Experiences', section: 'interviews' },
-  { label: 'About Us', section: 'about' },
 ]
 
 export default function Navbar() {
@@ -59,6 +58,12 @@ export default function Navbar() {
               {link.label}
             </button>
           ))}
+          <Link
+            to="/about"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-indigo-600"
+          >
+            About Us
+          </Link>
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
@@ -151,6 +156,13 @@ export default function Navbar() {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/about"
+              className="rounded-lg px-3 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              About Us
+            </Link>
           </nav>
           <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4">
             {isAuthenticated ? (
