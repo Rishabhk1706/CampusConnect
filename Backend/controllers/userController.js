@@ -90,11 +90,7 @@ export const updateMyProfile = async (req, res) => {
 
       const course = await Course.findById(user.course);
 
-      if (
-        !course ||
-        year < 1 ||
-        year > course.durationYears
-      ) {
+      if (!course || year < 1 || year > course.durationYears) {
         return res.status(400).json({
           error: "Invalid academic year for your course",
         });
@@ -189,7 +185,10 @@ export const updateMyProfile = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    if (error.name === "ValidationError" || error.name === "CastError") {
+    if (
+      error.name === "ValidationError" ||
+      error.name === "CastError"
+    ) {
       return res.status(400).json({
         error: error.message,
       });
@@ -201,6 +200,84 @@ export const updateMyProfile = async (req, res) => {
       error: "Failed to update profile",
     });
   }
+};
+
+// Shared function to fetch seniors, peers, or juniors
+const getStudentDirectory = async (req, res, relation) => {
+  try {
+    const currentUser = await User.findById(req.user.id).select(
+      "college course year"
+    );
+
+    if (!currentUser) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    if (
+      !currentUser.college ||
+      !currentUser.course ||
+      !Number.isInteger(currentUser.year)
+    ) {
+      return res.status(400).json({
+        error: "Your college, course, or academic year is missing",
+      });
+    }
+
+    let yearFilter;
+
+    if (relation === "seniors") {
+      yearFilter = { $gt: currentUser.year };
+    } else if (relation === "peers") {
+      yearFilter = currentUser.year;
+    } else {
+      yearFilter = { $lt: currentUser.year };
+    }
+
+    const students = await User.find({
+      _id: { $ne: currentUser._id },
+      college: currentUser.college,
+      course: currentUser.course,
+      year: yearFilter,
+      isVerified: true,
+    })
+      .select(
+        "name college course branch year graduationYear bio linkedinUrl githubUrl leetcodeUrl codeforcesUrl skills achievements internships interests company role"
+      )
+      .populate("college", "name")
+      .populate("course", "name durationYears")
+      .populate("branch", "name code")
+      .sort({ year: relation === "juniors" ? -1 : 1, name: 1 });
+
+    return res.status(200).json({
+      success: true,
+      relation,
+      count: students.length,
+      students,
+    });
+  } catch (error) {
+    console.error(`Get ${relation} error:`, error.message);
+
+    return res.status(500).json({
+      error: `Failed to fetch ${relation} profiles`,
+    });
+  }
+};
+
+// Get senior profiles: academic year greater than mine
+export const getSeniors = async (req, res) => {
+  return getStudentDirectory(req, res, "seniors");
+};
+
+// Get peer profiles: same academic year, excluding myself
+export const getPeers = async (req, res) => {
+  return getStudentDirectory(req, res, "peers");
+};
+
+// Get junior profiles: academic year lower than mine
+export const getJuniors = async (req, res) => {
+  return getStudentDirectory(req, res, "juniors");
 };
 
 export const getUserById = async (req, res) => {
