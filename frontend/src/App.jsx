@@ -5,6 +5,8 @@ import Footer from './components/layout/Footer'
 import HomePage from './pages/HomePage'
 import LegalPage from './pages/LegalPage'
 import AboutPage from './pages/AboutPage'
+import RegisterPage from './pages/RegisterPage'
+import LoginPage from './pages/LoginPage'
 
 export default function App() {
   return (
@@ -16,6 +18,8 @@ export default function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path='/login' element={<LoginPage/>} />
+              <Route path='/register' element={<RegisterPage/>} />
               <Route path="/privacy" element={<LegalPage type="privacy" />} />
               <Route path="/terms" element={<LegalPage type="terms" />} />
               <Route path="*" element={<Navigate to="/" replace />} />
