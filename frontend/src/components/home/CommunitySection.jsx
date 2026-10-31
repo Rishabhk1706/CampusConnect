@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { scrollToSection } from '../../utils/navigation'
 
 export default function CommunitySection() {
-  const { isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [posts, setPosts] = useState(() => {
     try { return JSON.parse(localStorage.getItem('peerconnect-posts')) || COMMUNITY_POSTS } catch { return COMMUNITY_POSTS }
   })
@@ -33,7 +33,9 @@ export default function CommunitySection() {
   const publishPost = (e) => {
     e.preventDefault()
     const tags = draft.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
-    setPosts((prev) => [{ id: `local-${Date.now()}`, author: 'You', year: 'Student', time: 'Just now', title: draft.title.trim(), description: draft.description.trim(), tags: tags.length ? tags : ['Community'], likes: 0, comments: 0, liked: false, commentList: [] }, ...prev])
+    const authorName = user?.name || 'You'
+    const authorYear = user?.year || 'Student'
+    setPosts((prev) => [{ id: `local-${Date.now()}`, author: authorName, year: authorYear, time: 'Just now', title: draft.title.trim(), description: draft.description.trim(), tags: tags.length ? tags : ['Community'], likes: 0, comments: 0, liked: false, commentList: [] }, ...prev])
     setTopic('All'); setDraft({ title: '', description: '', tags: '' }); setComposerOpen(false); setMessage('Your post is published in this browser demo.')
   }
   const sharePost = async () => {
@@ -43,7 +45,8 @@ export default function CommunitySection() {
   const addComment = (e, id) => {
     e.preventDefault()
     if (!commentText.trim()) return
-    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, commentList: [...(p.commentList || []), { author: 'You', text: commentText.trim() }] } : p))
+    const authorName = user?.name || 'You'
+    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, commentList: [...(p.commentList || []), { author: authorName, text: commentText.trim() }] } : p))
     setCommentText('')
   }
 
