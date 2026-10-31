@@ -40,6 +40,16 @@ export async function loginUserApi({ email, password }) {
   return res.data;
 }
 
+export async function forgotPasswordApi({ email }) {
+  const res = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
+  return res.data;
+}
+
+export async function resetPasswordApi({ email, otp, newPassword }) {
+  const res = await axios.post(`${API_BASE_URL}/auth/reset-password`, { email, otp, newPassword });
+  return res.data;
+}
+
 export function getCollegesByState(state) {
   return axios.get(`${API_BASE_URL}/colleges?state=${state}`).then((res) => res.data);
 }
