@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { loginUserApi, registerUserApi } from '../utils/apis'
 
 const AuthContext = createContext(null)
 
@@ -22,110 +23,76 @@ export function AuthProvider({ children }) {
       localStorage.setItem('peerconnect-user', JSON.stringify(nextUser))
     } else {
       localStorage.removeItem('peerconnect-user')
+      localStorage.removeItem('peerconnect-token')
     }
   }, [])
 
-  const login = useCallback((email, password) => {
+  const setAuthSession = useCallback((apiUser, token) => {
+    if (token) {
+      localStorage.setItem('peerconnect-token', token)
+    }
+
+    const initials = apiUser?.name
+      ? apiUser.name
+          .trim()
+          .split(/\s+/)
+          .map((p) => p[0])
+          .filter(Boolean)
+          .join('')
+          .slice(0, 2)
+          .toUpperCase()
+      : 'ST'
+
+    const loggedUser = {
+      ...apiUser,
+      initials,
+      year: apiUser?.year ? `${apiUser.year} Year` : 'Student',
+    }
+
+    saveUser(loggedUser)
+    return loggedUser
+  }, [saveUser])
+
+  const login = useCallback(async (email, password) => {
     const trimmedEmail = email?.trim().toLowerCase()
     if (!trimmedEmail || !password?.trim()) {
       return { ok: false, message: 'Email and password are required.' }
     }
-    if (password.length < 6) {
-      return { ok: false, message: 'Password must be at least 6 characters.' }
-    }
-    let registeredUsers = []
-    try {
-      registeredUsers = JSON.parse(localStorage.getItem('peerconnect-registered-users')) || []
-    } catch {
-      registeredUsers = []
-    }
 
-    const matchedUser = registeredUsers.find((u) => u.email === trimmedEmail)
-    if (matchedUser) {
-      if (matchedUser.password && matchedUser.password !== password) {
-        return { ok: false, message: 'Invalid password. Please check your credentials.' }
+    try {
+      // 1. Authenticate with backend API
+      const res = await loginUserApi({ email: trimmedEmail, password })
+      if (res && res.token && res.user) {
+        const loggedUser = setAuthSession(res.user, res.token)
+        return { ok: true, user: loggedUser }
       }
-      saveUser(matchedUser)
-      return { ok: true, user: matchedUser }
-    }
-    const emailPrefix = trimmedEmail.split('@')[0].replace(/[._-]/g, ' ')
-    const derivedName = emailPrefix
-      .split(/\s+/)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ') || 'Student'
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.message || 'Login failed'
+      const isUnverified = err.response?.status === 403
 
-    const initials = derivedName
-      .split(/\s+/)
-      .map((p) => p[0])
-      .filter(Boolean)
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'ST'
-
-    const fallbackUser = {
-      id: `user-${Date.now()}`,
-      name: derivedName,
-      email: trimmedEmail,
-      year: 'Student',
-      initials,
+      return {
+        ok: false,
+        message: errorMsg,
+        needsVerification: isUnverified,
+      }
     }
 
-    saveUser(fallbackUser)
-    return { ok: true, user: fallbackUser }
-  }, [saveUser])
+    return { ok: false, message: 'Invalid credentials. Please try again.' }
+  }, [setAuthSession])
 
-  const register = useCallback((form) => {
-    const { name, email, password, confirmPassword, college, branch, year } = form || {}
-    if (!name?.trim() || !email?.trim() || !password) {
-      return { ok: false, message: 'Please fill in all required fields.' }
-    }
-    if (password !== confirmPassword) {
-      return { ok: false, message: 'Passwords do not match.' }
-    }
-    if (password.length < 6) {
-      return { ok: false, message: 'Password must be at least 6 characters.' }
-    }
-
-    const trimmedName = name.trim()
-    const trimmedEmail = email.trim().toLowerCase()
-
-    let registeredUsers = []
+  const register = useCallback(async (form) => {
     try {
-      registeredUsers = JSON.parse(localStorage.getItem('peerconnect-registered-users')) || []
-    } catch {
-      registeredUsers = []
+      const res = await registerUserApi(form)
+      return { ok: true, data: res }
+    } catch (err) {
+      return {
+        ok: false,
+        message: err.response?.data?.error || err.message || 'Registration failed',
+        status: err.response?.status,
+        data: err.response?.data,
+      }
     }
-
-    const existingUser = registeredUsers.find((u) => u.email === trimmedEmail)
-    if (existingUser) {
-      return { ok: false, message: 'An account with this email already exists. Please log in.' }
-    }
-
-    const initials = trimmedName
-      .split(/\s+/)
-      .map((p) => p[0])
-      .filter(Boolean)
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'ST'
-
-    const newUser = {
-      id: `user-${Date.now()}`,
-      name: trimmedName,
-      email: trimmedEmail,
-      college: college?.trim() || '',
-      branch: branch?.trim() || '',
-      year: year || '1st Year',
-      password,
-      initials,
-    }
-
-    registeredUsers.push(newUser)
-    localStorage.setItem('peerconnect-registered-users', JSON.stringify(registeredUsers))
-
-    saveUser(newUser)
-    return { ok: true, user: newUser }
-  }, [saveUser])
+  }, [])
 
   const logout = useCallback(() => saveUser(null), [saveUser])
 

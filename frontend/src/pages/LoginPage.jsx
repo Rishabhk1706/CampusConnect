@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { AlertCircle, ArrowRight, Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldAlert, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import Logo from '../components/ui/Logo'
 
@@ -19,21 +19,34 @@ const loginSchema = Yup.object().shape({
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null)
+  const [verificationBanner, setVerificationBanner] = useState(null)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.justVerified || location.state?.message) {
+      setVerificationBanner(location.state.message || 'Email verified successfully! You can now log in.')
+    }
+  }, [location.state])
 
   const formik = useFormik({
     initialValues: {
-      email: '',
+      email: location.state?.verifiedEmail || '',
       password: '',
       rememberMe: false,
     },
     validationSchema: loginSchema,
     onSubmit: async (values, { setSubmitting, setStatus }) => {
       setStatus(null)
+      setUnverifiedEmail(null)
       try {
-        const result = login(values.email, values.password)
+        const result = await login(values.email, values.password)
         if (!result.ok) {
+          if (result.needsVerification) {
+            setUnverifiedEmail(values.email.trim().toLowerCase())
+          }
           setStatus(result.message || 'Login failed. Please check your credentials.')
           setSubmitting(false)
           return
@@ -67,10 +80,31 @@ export default function LoginPage() {
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-6 sm:p-8 shadow-xl shadow-slate-200/50 backdrop-blur-md">
+          {verificationBanner && (
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-sm text-emerald-800 animate-fadeIn">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
+              <span>{verificationBanner}</span>
+            </div>
+          )}
+
           {formik.status && (
-            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-700 animate-fadeIn">
-              <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
-              <span>{formik.status}</span>
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-700 animate-fadeIn space-y-2">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
+                <span>{formik.status}</span>
+              </div>
+              {unverifiedEmail && (
+                <div className="pt-2 pl-8">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register', { state: { verifyEmail: unverifiedEmail } })}
+                    className="inline-flex items-center gap-1.5 font-semibold text-indigo-700 hover:text-indigo-900 underline"
+                  >
+                    <ShieldAlert className="h-4 w-4" />
+                    <span>Enter OTP to verify account now &rarr;</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

@@ -8,6 +8,8 @@ import AboutPage from './pages/AboutPage'
 import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 
+console.log("--> App.jsx loaded! Current URL:", window.location.href);
+
 export default function App() {
   return (
     <AuthProvider>
