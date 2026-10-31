@@ -120,7 +120,7 @@ export default function RegisterPage() {
                     id="name"
                     type="text"
                     {...formik.getFieldProps('name')}
-                    placeholder="Aditi Rao"
+                    placeholder="Enter your full name"
                     className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition ${
                       formik.touched.name && formik.errors.name
                         ? 'border-red-400 bg-red-50/30 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
