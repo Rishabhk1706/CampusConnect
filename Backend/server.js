@@ -9,6 +9,7 @@ import branchRoutes from "./routes/branchRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
+import roleRoutes from "./routes/roleRoutes.js";
 
 dotenv.config();
 
@@ -16,25 +17,26 @@ const app = express();
 
 const PORT = process.env.PORT
 
-app.use(cors());  
-app.use(express.json());  
+app.use(cors());
+app.use(express.json());
 
 mongoose
-    .connect(process.env.MONGO_URI)
-    .then(()=> console.log(`Connected Successfully`))
-    .catch((error) => {
-        console.error("MongoDB connection failed:", error.message);
-    });
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log(`Connected Successfully`))
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
+  });
 
-    app.use("/api/courses", courseRoutes);
-    app.use("/api/colleges", collegeRoutes);
-    app.use("/api/branches", branchRoutes);
-    app.use("/api/auth", authRoutes);
-    app.use("/api/users", userRoutes);
-    app.use("/api/companies", companyRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/colleges", collegeRoutes);
+app.use("/api/branches", branchRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/companies", companyRoutes);
+app.use("/api/roles", roleRoutes);
 
 app.get("/", (req, res) => {
   res.send("🎉 Welcome to the Campus Connect!");
 });
 
-app.listen(PORT, ()=>console.log(`Server started http://localhost:${PORT}`))
+app.listen(PORT, () => console.log(`Server started http://localhost:${PORT}`))
