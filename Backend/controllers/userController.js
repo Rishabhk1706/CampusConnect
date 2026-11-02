@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Course from "../models/Course.js";
+import Branch from "../models/Branch.js";
 
 export const getMyProfile = async (req, res) => {
   try {
@@ -235,13 +236,34 @@ const getStudentDirectory = async (req, res, relation) => {
       yearFilter = { $lt: currentUser.year };
     }
 
-    const students = await User.find({
+    const filter = {
       _id: { $ne: currentUser._id },
       college: currentUser.college,
       course: currentUser.course,
       year: yearFilter,
       isVerified: true,
-    })
+    };
+    if (req.query.branch && req.query.branch !== "all") filter.branch = req.query.branch;
+    if (req.query.internship === "yes") filter["internships.0"] = { $exists: true };
+    if (req.query.internship === "no") {
+      filter.$expr = {
+        $eq: [{ $size: { $ifNull: ["$internships", []] } }, 0],
+      };
+    }
+    for (const field of ["company", "role"]) {
+      const value = req.query[field]?.trim();
+      if (value) filter[field] = { $regex: value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
+    }
+    const search = req.query.search?.trim();
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$or = [
+        { name: { $regex: escaped, $options: "i" } },
+        { skills: { $elemMatch: { $regex: escaped, $options: "i" } } },
+        { interests: { $elemMatch: { $regex: escaped, $options: "i" } } },
+      ];
+    }
+    const students = await User.find(filter)
       .select(
         "name college course branch year graduationYear bio linkedinUrl githubUrl leetcodeUrl codeforcesUrl skills achievements internships interests company role"
       )
@@ -254,6 +276,7 @@ const getStudentDirectory = async (req, res, relation) => {
       success: true,
       relation,
       count: students.length,
+      branches: await Branch.find({ _id: { $in: await User.find({ college: currentUser.college, course: currentUser.course, isVerified: true }).distinct("branch") } }).select("_id name code").sort({ name: 1 }).lean(),
       students,
     });
   } catch (error) {
@@ -262,6 +285,33 @@ const getStudentDirectory = async (req, res, relation) => {
     return res.status(500).json({
       error: `Failed to fetch ${relation} profiles`,
     });
+  }
+};
+
+export const getDirectoryBranches = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id).select("college course");
+    if (!currentUser) return res.status(404).json({ error: "User not found" });
+    const students = await User.find({ college: currentUser.college, course: currentUser.course, isVerified: true }).distinct("branch");
+    const branches = await Branch.find({ _id: { $in: students } }).select("_id name code").sort({ name: 1 }).lean();
+    return res.status(200).json({ branches });
+  } catch (error) {
+    console.error("Get directory branches error:", error.message);
+    return res.status(500).json({ error: "Failed to fetch branches" });
+  }
+};
+
+export const getDirectoryOptions = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id).select("college course");
+    if (!currentUser) return res.status(404).json({ error: "User not found" });
+    const values = await User.find({ isVerified: true, college: currentUser.college, course: currentUser.course }).select("company role").lean();
+    const companies = [...new Set(values.map((item) => item.company?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const roles = [...new Set(values.map((item) => item.role?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    return res.status(200).json({ companies, roles });
+  } catch (error) {
+    console.error("Get directory options error:", error.message);
+    return res.status(500).json({ error: "Failed to fetch directory options" });
   }
 };
 
@@ -282,7 +332,10 @@ export const getJuniors = async (req, res) => {
 
 export const getUserById = async (req, res) => {
   try {
+    const currentUser = await User.findById(req.user.id).select("college course");
+    if (!currentUser) return res.status(404).json({ error: "User not found" });
     const user = await User.findById(req.params.id)
+      .where({ college: currentUser.college, course: currentUser.course, isVerified: true })
       .select(
         "name college course branch year graduationYear bio linkedinUrl githubUrl leetcodeUrl codeforcesUrl skills achievements internships interests company role"
       )
@@ -292,7 +345,7 @@ export const getUserById = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        error: "User not found",
+        error: "Student profile not found in your campus directory",
       });
     }
 

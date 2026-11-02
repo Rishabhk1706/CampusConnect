@@ -51,7 +51,22 @@ export default function LoginPage() {
           setSubmitting(false)
           return
         }
-        navigate('/')
+        const requestedPath = location.state?.from
+        const requestedPathname = typeof requestedPath === 'string'
+          ? requestedPath
+          : requestedPath?.pathname
+        const isDirectoryPath = requestedPathname === '/directory'
+          || requestedPathname?.startsWith('/directory/')
+        const isStudentProfilePath = requestedPathname?.startsWith('/students/')
+        const destination = isDirectoryPath || isStudentProfilePath
+          ? typeof requestedPath === 'string'
+            ? requestedPath
+            : `${requestedPath.pathname}${requestedPath.search || ''}${requestedPath.hash || ''}`
+          : '/directory/peers'
+        navigate(
+          destination,
+          { replace: true },
+        )
       } catch {
         setStatus('An unexpected error occurred. Please try again.')
         setSubmitting(false)

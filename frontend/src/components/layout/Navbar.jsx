@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, LogOut, Menu, User, X } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, User, UserRound, X } from 'lucide-react'
 import Logo from '../ui/Logo'
 import Avatar from '../ui/Avatar'
 import { useAuth } from '../../context/AuthContext'
@@ -19,6 +19,9 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const isDirectory = isAuthenticated && (
+    location.pathname.startsWith('/directory') || location.pathname.startsWith('/students/')
+  )
 
   useEffect(() => {
     setOpen(false)
@@ -42,12 +45,28 @@ export default function Navbar() {
     }
   }
 
+  const openMyProfile = () => {
+    setMenuOpen(false)
+    if (location.pathname.startsWith('/directory')) {
+      window.dispatchEvent(new CustomEvent('campusconnect:open-profile'))
+      return
+    }
+    navigate('/directory/peers', { state: { openProfile: true } })
+  }
+
+  const handleLogout = () => {
+    logout()
+    setMenuOpen(false)
+    setOpen(false)
+    navigate('/')
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className={`mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6 ${isDirectory ? 'max-w-6xl' : 'max-w-7xl lg:px-8'}`}>
         <Logo />
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+        {!isDirectory && <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
           {NAV_LINKS.map((link) => (
             <button
               key={link.section}
@@ -64,10 +83,32 @@ export default function Navbar() {
           >
             About Us
           </Link>
-        </nav>
+        </nav>}
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className={`${isDirectory ? 'flex' : 'hidden lg:flex'} items-center gap-1.5 sm:gap-3`}>
           {isAuthenticated ? (
+            isDirectory ? (
+              <>
+                <button
+                  type="button"
+                  onClick={openMyProfile}
+                  aria-label="My Profile"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 sm:px-4"
+                >
+                  <UserRound size={16} className="text-indigo-600" />
+                  <span className="hidden sm:inline">My Profile</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  aria-label="Logout"
+                  className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-2.5 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 sm:px-4"
+                >
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </>
+            ) : (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -95,7 +136,7 @@ export default function Navbar() {
                     className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
                     onClick={() => {
                       setMenuOpen(false)
-                      goToSection('community')
+                      openMyProfile()
                     }}
                   >
                     <User className="h-4 w-4" /> My Profile
@@ -105,8 +146,7 @@ export default function Navbar() {
                     role="menuitem"
                     className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                     onClick={() => {
-                      logout()
-                      setMenuOpen(false)
+                      handleLogout()
                     }}
                   >
                     <LogOut className="h-4 w-4" /> Log out
@@ -114,6 +154,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+            )
           ) : (
             <>
               <Link
@@ -134,7 +175,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="inline-flex rounded-lg p-2 text-slate-700 lg:hidden"
+          className={`${isDirectory ? 'hidden' : 'inline-flex lg:hidden'} rounded-lg p-2 text-slate-700`}
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
@@ -143,7 +184,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {open && (
+      {open && !isDirectory && (
         <div className="border-t border-slate-200 bg-white px-4 py-4 lg:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {NAV_LINKS.map((link) => (

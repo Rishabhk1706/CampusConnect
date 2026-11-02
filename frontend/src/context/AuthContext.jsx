@@ -1,54 +1,95 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { loginUserApi, registerUserApi } from '../utils/apis'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { getMyProfile, loginUserApi, registerUserApi } from '../utils/apis'
 
 const AuthContext = createContext(null)
+const TOKEN_KEY = 'peerconnect-token'
+const USER_KEY = 'peerconnect-user'
+
+const clearStoredSession = () => {
+  localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(TOKEN_KEY)
+}
+
+const withUserDefaults = (apiUser) => {
+  const initials = apiUser?.name
+    ? apiUser.name
+        .trim()
+        .split(/\s+/)
+        .map((part) => part[0])
+        .filter(Boolean)
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    : 'ST'
+
+  return {
+    ...apiUser,
+    initials,
+    year: apiUser?.year ? `${apiUser.year} Year` : 'Student',
+  }
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState(null)
+  const [authStatus, setAuthStatus] = useState('checking')
+
+  const validateSession = useCallback(async () => {
+    setAuthStatus('checking')
+    const token = localStorage.getItem(TOKEN_KEY)
+    let storedUser
+
     try {
-      const stored = JSON.parse(localStorage.getItem('peerconnect-user'))
-      if (stored && stored.name === 'Aditi Rao') {
-        localStorage.removeItem('peerconnect-user')
-        return null
-      }
-      return stored
+      storedUser = JSON.parse(localStorage.getItem(USER_KEY))
     } catch {
-      return null
+      clearStoredSession()
+      setUser(null)
+      setAuthStatus('unauthenticated')
+      return
     }
-  })
+
+    if (!token || !storedUser) {
+      clearStoredSession()
+      setUser(null)
+      setAuthStatus('unauthenticated')
+      return
+    }
+
+    try {
+      const verifiedUser = withUserDefaults(await getMyProfile())
+      setUser(verifiedUser)
+      localStorage.setItem(USER_KEY, JSON.stringify(verifiedUser))
+      setAuthStatus('authenticated')
+    } catch (error) {
+      if (error.response?.status === 401) {
+        clearStoredSession()
+        setUser(null)
+        setAuthStatus('unauthenticated')
+        return
+      }
+
+      setUser(null)
+      setAuthStatus('error')
+    }
+  }, [])
+
+  useEffect(() => {
+    validateSession()
+  }, [validateSession])
 
   const saveUser = useCallback((nextUser) => {
     setUser(nextUser)
     if (nextUser) {
-      localStorage.setItem('peerconnect-user', JSON.stringify(nextUser))
+      localStorage.setItem(USER_KEY, JSON.stringify(nextUser))
+      setAuthStatus('authenticated')
     } else {
-      localStorage.removeItem('peerconnect-user')
-      localStorage.removeItem('peerconnect-token')
+      clearStoredSession()
+      setAuthStatus('unauthenticated')
     }
   }, [])
 
   const setAuthSession = useCallback((apiUser, token) => {
-    if (token) {
-      localStorage.setItem('peerconnect-token', token)
-    }
-
-    const initials = apiUser?.name
-      ? apiUser.name
-          .trim()
-          .split(/\s+/)
-          .map((p) => p[0])
-          .filter(Boolean)
-          .join('')
-          .slice(0, 2)
-          .toUpperCase()
-      : 'ST'
-
-    const loggedUser = {
-      ...apiUser,
-      initials,
-      year: apiUser?.year ? `${apiUser.year} Year` : 'Student',
-    }
-
+    localStorage.setItem(TOKEN_KEY, token)
+    const loggedUser = withUserDefaults(apiUser)
     saveUser(loggedUser)
     return loggedUser
   }, [saveUser])
@@ -60,7 +101,6 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // 1. Authenticate with backend API
       const res = await loginUserApi({ email: trimmedEmail, password })
       if (res && res.token && res.user) {
         const loggedUser = setAuthSession(res.user, res.token)
@@ -97,8 +137,17 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => saveUser(null), [saveUser])
 
   const value = useMemo(
-    () => ({ user, isAuthenticated: Boolean(user), login, register, logout }),
-    [user, login, register, logout],
+    () => ({
+      user,
+      authStatus,
+      isAuthenticated: authStatus === 'authenticated',
+      validateSession,
+      login,
+      register,
+      logout,
+      saveUser,
+    }),
+    [user, authStatus, validateSession, login, register, logout, saveUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
