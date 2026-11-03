@@ -12,6 +12,10 @@ export const authConfig = () => ({
 export async function getColleges() { return (await axios.get(`${API_BASE_URL}/colleges`)).data; }
 export async function getCourses() { return (await axios.get(`${API_BASE_URL}/courses`)).data; }
 export async function getBranches(courseId) { return (await axios.get(`${API_BASE_URL}/branches${courseId ? `?courseId=${courseId}` : ''}`)).data; }
+export async function getCompanies() { return (await axios.get(`${API_BASE_URL}/companies`)).data; }
+export async function addCompany(name) { return (await axios.post(`${API_BASE_URL}/companies`, { name })).data; }
+export async function getRoles() { return (await axios.get(`${API_BASE_URL}/roles`)).data; }
+export async function addRole(name) { return (await axios.post(`${API_BASE_URL}/roles`, { name })).data; }
 export async function registerUserApi(data) { return (await axios.post(`${API_BASE_URL}/auth/register`, data)).data; }
 export async function verifyOtpApi(data) { return (await axios.post(`${API_BASE_URL}/auth/verify-otp`, data)).data; }
 export async function resendOtpApi(data) { return (await axios.post(`${API_BASE_URL}/auth/send-otp`, data)).data; }

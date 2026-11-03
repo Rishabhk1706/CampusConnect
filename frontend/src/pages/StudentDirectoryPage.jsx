@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { BriefcaseBusiness, GraduationCap, Search, UserRound, X, SlidersHorizontal, UsersRound, Sparkles, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { getDirectory, getDirectoryOptions, getMyProfile, updateMyProfile } from '../utils/apis'
+import { addCompany, addRole, getCompanies, getDirectory, getDirectoryOptions, getMyProfile, getRoles, updateMyProfile } from '../utils/apis'
 
 const relations = ['juniors', 'peers', 'seniors']
 const labels = { juniors: 'Junior', peers: 'Peer', seniors: 'Senior' }
@@ -24,6 +24,11 @@ export default function StudentDirectoryPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [branches, setBranches] = useState([])
   const [options, setOptions] = useState({ companies: [], roles: [] })
+  const [companyChoices, setCompanyChoices] = useState([])
+  const [roleChoices, setRoleChoices] = useState([])
+  const [companyValue, setCompanyValue] = useState('')
+  const [roleValue, setRoleValue] = useState('')
+  const [choiceLoadError, setChoiceLoadError] = useState('')
   const [filters, setFilters] = useState({ search: '', branch: '', internship: '', company: '', role: '' })
   const [appliedFilters, setAppliedFilters] = useState(filters)
   const [loading, setLoading] = useState(true)
@@ -47,14 +52,25 @@ export default function StudentDirectoryPage() {
   }, [profile, location.pathname, location.state, navigate])
   useEffect(() => {
     let active = true
-    Promise.allSettled([getDirectoryOptions(), getMyProfile()]).then((results) => {
+    Promise.allSettled([getDirectoryOptions(), getMyProfile(), getCompanies(), getRoles()]).then((results) => {
       if (!active) return
       if (results[0].status === 'fulfilled') setOptions(results[0].value)
       if (results[1].status === 'fulfilled') setProfile(results[1].value)
       else setNotice(results[1].reason?.response?.data?.error || 'Profile could not be loaded. Please sign in again.')
+      if (results[2].status === 'fulfilled') setCompanyChoices(results[2].value.companies.map((company) => company.name))
+      if (results[3].status === 'fulfilled') setRoleChoices(results[3].value.roles.map((role) => role.name))
+      const choiceErrors = []
+      if (results[2].status === 'rejected') choiceErrors.push('Company options could not be loaded.')
+      if (results[3].status === 'rejected') choiceErrors.push('Role options could not be loaded.')
+      if (choiceErrors.length) setChoiceLoadError(`${choiceErrors.join(' ')} You can still add options.`)
     }).finally(() => active && setProfileLoading(false))
     return () => { active = false }
   }, [])
+  useEffect(() => {
+    if (!profile || !editing) return
+    setCompanyValue(profile.company || '')
+    setRoleValue(profile.role || '')
+  }, [profile, editing])
   useEffect(() => {
     let active = true
     setLoading(true)
@@ -96,6 +112,7 @@ export default function StudentDirectoryPage() {
       linkedinUrl: data.get('linkedinUrl'),
       githubUrl: data.get('githubUrl'),
       skills: String(data.get('skills') || '').split(',').map((skill) => skill.trim()).filter(Boolean),
+      achievements: String(data.get('achievements') || '').split(/\r?\n/).map((achievement) => achievement.trim()).filter(Boolean),
       interests: String(data.get('interests') || '').split(',').map((interest) => interest.trim()).filter(Boolean),
       internships: String(data.get('internships') || '').split(',').map((internship) => internship.trim()).filter(Boolean),
     }
@@ -113,6 +130,19 @@ export default function StudentDirectoryPage() {
       setSaveError(err.response?.data?.error || 'Profile could not be updated. Please try again.')
     }
     finally { setSaving(false) }
+  }
+
+  const createCompany = async (name) => {
+    const result = await addCompany(name)
+    const savedName = result.company.name
+    setCompanyChoices((choices) => [...new Set([...choices, savedName])].sort((a, b) => a.localeCompare(b)))
+    setCompanyValue(savedName)
+  }
+  const createRole = async (name) => {
+    const result = await addRole(name)
+    const savedName = result.role.name
+    setRoleChoices((choices) => [...new Set([...choices, savedName])].sort((a, b) => a.localeCompare(b)))
+    setRoleValue(savedName)
   }
 
   return <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/70 px-4 py-7 text-slate-900 sm:px-6 lg:py-8">
@@ -163,6 +193,7 @@ export default function StudentDirectoryPage() {
           <form onSubmit={onSave} className="grid gap-4 sm:grid-cols-2">
             {profile.email && <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 sm:col-span-2">Signed in as <strong className="font-medium text-slate-800">{profile.email}</strong></div>}
             {saveError && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 sm:col-span-2">{saveError}</p>}
+            {choiceLoadError && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 sm:col-span-2">{choiceLoadError}</p>}
             <label className="text-xs font-semibold text-slate-600">Name<input name="name" required defaultValue={profile.name || ''} className={`${field} mt-1.5`} /></label>
             <label className="text-xs font-semibold text-slate-600">Academic year<input name="year" type="number" min="1" max="10" required defaultValue={profile.year || ''} className={`${field} mt-1.5`} /></label>
             <label className="text-xs font-semibold text-slate-600">
@@ -177,10 +208,11 @@ export default function StudentDirectoryPage() {
               />
               <span className="mt-1 block font-normal text-slate-400">Enter a calendar year, such as 2027.</span>
             </label>
-            <label className="text-xs font-semibold text-slate-600">Company<input name="company" defaultValue={profile.company || ''} className={`${field} mt-1.5`} /></label>
-            <label className="text-xs font-semibold text-slate-600 sm:col-span-2">Role<input name="role" defaultValue={profile.role || ''} className={`${field} mt-1.5`} /></label>
+            <ProfileChoiceField label="Company" name="company" value={companyValue} options={companyChoices} onChange={setCompanyValue} onCreate={createCompany} onError={setSaveError} />
+            <ProfileChoiceField label="Role" name="role" value={roleValue} options={roleChoices} onChange={setRoleValue} onCreate={createRole} onError={setSaveError} className="sm:col-span-2" />
             <label className="text-xs font-semibold text-slate-600 sm:col-span-2">About you<textarea name="bio" rows="3" defaultValue={profile.bio || ''} className={`${field} mt-1.5`} /></label>
             <label className="text-xs font-semibold text-slate-600 sm:col-span-2">Skills <span className="font-normal text-slate-400">(comma separated)</span><input name="skills" defaultValue={(profile.skills || []).join(', ')} className={`${field} mt-1.5`} /></label>
+            <label className="text-xs font-semibold text-slate-600 sm:col-span-2">Achievements <span className="font-normal text-slate-400">(one per line)</span><textarea name="achievements" rows="3" defaultValue={(profile.achievements || []).join('\n')} className={`${field} mt-1.5`} /></label>
             <label className="text-xs font-semibold text-slate-600 sm:col-span-2">Interests <span className="font-normal text-slate-400">(comma separated)</span><input name="interests" defaultValue={(profile.interests || []).join(', ')} className={`${field} mt-1.5`} /></label>
             <label className="text-xs font-semibold text-slate-600 sm:col-span-2">Internships <span className="font-normal text-slate-400">(comma separated)</span><input name="internships" defaultValue={(profile.internships || []).join(', ')} className={`${field} mt-1.5`} /></label>
             <label className="text-xs font-semibold text-slate-600">LinkedIn URL<input name="linkedinUrl" defaultValue={profile.linkedinUrl || ''} className={`${field} mt-1.5`} /></label>
@@ -194,4 +226,63 @@ export default function StudentDirectoryPage() {
       </div>
     )}
   </main>
+}
+
+function ProfileChoiceField({ label, name, value, options, onChange, onCreate, onError, className = '' }) {
+  const [open, setOpen] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const normalizedValue = value.trim().toLocaleLowerCase()
+  const filteredOptions = options
+    .filter((option) => option.toLocaleLowerCase().includes(normalizedValue))
+  const alreadyExists = options.some((option) => option.trim().toLocaleLowerCase() === normalizedValue)
+
+  const addOption = async () => {
+    setAdding(true)
+    onError('')
+    try {
+      await onCreate(value.trim())
+      setOpen(false)
+    } catch (error) {
+      onError(error.response?.data?.message || `Could not add this ${label.toLowerCase()}. Please try again.`)
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  return (
+    <div className={`text-xs font-semibold text-slate-600 ${className}`} onBlur={(event) => {
+      if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+    }}>
+      <label htmlFor={`${name}-input`}>{label}</label>
+      <div className="mt-1.5 flex gap-2">
+        <div className="relative min-w-0 flex-1">
+          <input
+            id={`${name}-input`}
+            name={name}
+            autoComplete="off"
+            maxLength="100"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={open}
+            aria-controls={`${name}-options`}
+            value={value}
+            onFocus={() => setOpen(true)}
+            onChange={(event) => { onChange(event.target.value); setOpen(true) }}
+            className={field}
+            placeholder={`Type or select a ${label.toLowerCase()}...`}
+          />
+          {open && (
+            <div id={`${name}-options`} role="listbox" className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+              <button type="button" role="option" aria-selected={!value} onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(''); setOpen(false) }} className="w-full rounded-lg px-3 py-2 text-left font-medium text-slate-500 hover:bg-slate-50">None</button>
+              {filteredOptions.map((option) => (
+                <button key={option} type="button" role="option" aria-selected={option === value} onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(option); setOpen(false) }} className="w-full rounded-lg px-3 py-2 text-left font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700">{option}</button>
+              ))}
+              {normalizedValue && filteredOptions.length === 0 && <p className="px-3 py-2 font-normal text-slate-500">No matching {label.toLowerCase()}.</p>}
+            </div>
+          )}
+        </div>
+        <button type="button" disabled={!normalizedValue || alreadyExists || adding} onClick={addOption} className="shrink-0 rounded-xl border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50">{adding ? 'Adding…' : 'Add'}</button>
+      </div>
+    </div>
+  )
 }

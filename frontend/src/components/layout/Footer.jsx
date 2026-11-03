@@ -1,49 +1,52 @@
-import { AtSign, Code2, Globe, Link2, Share2 } from 'lucide-react'
-import Logo from '../ui/Logo'
-import { scrollToSection } from '../../utils/navigation'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { AtSign, Code2, Globe, Link2, Share2 } from "lucide-react";
+import Logo from "../ui/Logo";
+import { scrollToSection } from "../../utils/navigation";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const FOOTER_GROUPS = [
   {
-    title: 'Platform',
+    title: "Platform",
     links: [
-      { label: 'Explore Seniors', section: 'seniors' },
-      { label: 'Interview Experiences', section: 'interviews' },
+      { label: "Explore Seniors", section: "seniors" },
+      { label: "Interview Experiences", section: "interviews" },
     ],
   },
   {
-    title: 'Company',
+    title: "Company",
     links: [
-      { label: 'About Us', to: '/about' },
-      { label: 'Our Mission', to: '/about' },
-      { label: 'Contact', section: 'cta' },
-      { label: 'Feedback', section: 'cta' },
+      { label: "About Us", to: "/about" },
+      { label: "Our Mission", to: "/about" },
+      { label: "Contact", section: "cta" },
+      { label: "Feedback", section: "cta" },
     ],
   },
   {
-    title: 'Legal',
+    title: "Legal",
     links: [
-      { label: 'Privacy Policy', to: '/privacy' },
-      { label: 'Terms and Conditions', to: '/terms' },
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms and Conditions", to: "/terms" },
     ],
   },
-]
+];
 
 const SOCIAL = [
-  { icon: Link2, label: 'LinkedIn' },
-  { icon: Share2, label: 'Twitter' },
-  { icon: Globe, label: 'Instagram' },
-  { icon: AtSign, label: 'Facebook' },
-  { icon: Code2, label: 'GitHub' },
-]
+  { icon: Link2, label: "LinkedIn" },
+  { icon: Share2, label: "Twitter" },
+  { icon: Globe, label: "Instagram" },
+  { icon: AtSign, label: "Facebook" },
+  { icon: Code2, label: "GitHub" },
+];
 
 function FooterLink({ link, onSection }) {
   if (link.to) {
     return (
-      <Link to={link.to} className="text-sm text-slate-400 transition hover:text-white">
+      <Link
+        to={link.to}
+        className="text-sm text-slate-400 transition hover:text-white"
+      >
         {link.label}
       </Link>
-    )
+    );
   }
   return (
     <button
@@ -53,20 +56,20 @@ function FooterLink({ link, onSection }) {
     >
       {link.label}
     </button>
-  )
+  );
 }
 
 export default function Footer() {
-  const navigate = useNavigate()
-  const location = useLocation()
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const goSection = (section) => {
-    if (location.pathname !== '/') {
-      navigate('/', { state: { scrollTo: section } })
+    if (location.pathname !== "/") {
+      navigate("/", { state: { scrollTo: section } });
     } else {
-      scrollToSection(section)
+      scrollToSection(section);
     }
-  }
+  };
 
   return (
     <footer className="bg-navy-950 text-slate-300">
@@ -75,8 +78,9 @@ export default function Footer() {
           <div>
             <Logo className="[&_span]:text-white [&_span_span]:text-indigo-light" />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
-              PeerConnect is a student-driven mentorship and knowledge-sharing platform designed to connect juniors and
-              seniors, make career guidance more accessible, and encourage collaborative learning.
+              CampusConnect is a student-driven mentorship and knowledge-sharing
+              platform designed to connect juniors and seniors, make career
+              guidance more accessible, and encourage collaborative learning.
             </p>
             <div className="mt-6 flex gap-3">
               {SOCIAL.map(({ icon: Icon, label }) => (
@@ -95,7 +99,9 @@ export default function Footer() {
 
           {FOOTER_GROUPS.map((group) => (
             <div key={group.title}>
-              <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-white">{group.title}</h3>
+              <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-white">
+                {group.title}
+              </h3>
               <ul className="mt-4 space-y-3">
                 {group.links.map((link) => (
                   <li key={link.label}>
@@ -108,9 +114,10 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} PeerConnect. Demo content for academic demonstration. All rights reserved.
+          © {new Date().getFullYear()} CampusConnect. Demo content for academic
+          demonstration. All rights reserved.
         </div>
       </div>
     </footer>
-  )
+  );
 }

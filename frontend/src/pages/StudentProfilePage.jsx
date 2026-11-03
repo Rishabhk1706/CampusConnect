@@ -8,7 +8,6 @@ import {
   Mail,
   MapPin,
   MessageCircle,
-  MessagesSquare,
   Share2,
   UserRound,
 } from 'lucide-react'
@@ -71,6 +70,7 @@ export default function StudentProfilePage() {
 
   const skills = student.skills || []
   const interests = student.interests || []
+  const achievements = student.achievements || []
   const contacts = [
     student.email && { label: student.email, href: `mailto:${student.email}`, icon: Mail },
     student.linkedinUrl && { label: student.linkedinUrl.replace(/^https?:\/\//, ''), href: externalUrl(student.linkedinUrl), icon: Link2 },
@@ -118,20 +118,13 @@ export default function StudentProfilePage() {
                 )}
               </div>
             </div>
-            <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto md:flex-col lg:flex-row">
+            <div className="md:justify-self-end">
               <button
                 type="button"
                 onClick={showChatNotice}
-                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 md:flex-none"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50"
               >
                 <MessageCircle size={16} className="text-indigo-600" />Chat
-              </button>
-              <button
-                type="button"
-                onClick={showChatNotice}
-                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 md:flex-none"
-              >
-                <MessagesSquare size={16} />Message/Chat
               </button>
             </div>
           </div>
@@ -176,6 +169,12 @@ export default function StudentProfilePage() {
                   <dd className="flex flex-wrap gap-1.5">
                     {skills.map((skill) => <span key={skill} className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">{skill}</span>)}
                   </dd>
+                </div>
+              )}
+              {achievements.length > 0 && (
+                <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 py-2.5 sm:grid-cols-[7rem_minmax(0,1fr)]">
+                  <dt className="text-slate-500">Achievements</dt>
+                  <dd className="break-words font-medium text-slate-800">{achievements.join(' · ')}</dd>
                 </div>
               )}
               {(student.company || student.role) && (
